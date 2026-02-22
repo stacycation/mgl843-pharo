@@ -1,0 +1,86 @@
+name: Pharo CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: pharo-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pharo
+        uses: hpi-swa/setup-pharo@v2
+        with:
+          pharo-version: "Pharo64-11"
+
+      - name: Cache Pharo + Metacello
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            ~/.pharo
+          key: ${{ runner.os }}-pharo11-${{ hashFiles('src/**', '.github/workflows/pharo.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pharo11-
+
+      - name: Ensure Iceberg layout exists
+        run: |
+          if [ ! -d "src" ]; then
+            echo "::error::Missing ./src directory (Tonel)."
+            exit 1
+          fi
+          echo "src contents:"
+          ls -la src
+
+      - name: Load project via Metacello (BaselineOfMGL843)
+        run: |
+          pharo --headless Pharo.image eval "
+            [ 
+              Metacello new
+                baseline: 'MGL843';
+                repository: 'filetree://', (FileLocator workingDirectory / 'src') fullName;
+                load: 'CI'.
+              Transcript show: 'Metacello load OK'; cr.
+              Smalltalk snapshot: false andQuit: true
+            ] on: Error do: [:e |
+              Transcript show: 'LOAD FAILED: '; show: e printString; cr.
+              Smalltalk exitFailure
+            ].
+          "
+
+      - name: Run SUnit tests
+        run: |
+          pharo --headless Pharo.image eval "
+            | suite result |
+            (Smalltalk at: #TestCase ifAbsent: [
+              Transcript show: 'SUnit not present - skipping.'; cr.
+              Smalltalk snapshot: false andQuit: true
+            ]).
+            suite := TestSuite new.
+            TestCase allSubclasses do: [:tc | suite addTests: tc suite ].
+            result := suite run.
+            Transcript show: 'Failures: '; show: result failures size asString; cr.
+            Transcript show: 'Errors: '; show: result errors size asString; cr.
+            ((result failures isEmpty) and: [ result errors isEmpty ])
+              ifTrue: [ Smalltalk snapshot: false andQuit: true ]
+              ifFalse: [ Smalltalk exitFailure ].
+          "
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pharo-artifacts
+          path: |
+            *.image
+            *.changes
+            PharoDebug.log
+          if-no-files-found: ignore
