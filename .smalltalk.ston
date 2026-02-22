@@ -1,5 +1,9 @@
 SmalltalkCISpec {
-  #baseline : 'MGL843',
-  #directory : 'src',
-  #load : [ 'CI' ]
+  #loading : [
+    {
+      #baseline : 'MGL843',
+      #directory : 'src',
+      #load : [ 'CI' ]
+    }
+  ]
 }
