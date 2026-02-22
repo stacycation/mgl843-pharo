@@ -51,7 +51,7 @@ jobs:
       - name: Copy generated files to images folder
         run: |
           if ls tp1-python-visualisations/*.png 1> /dev/null 2>&1; then
-            cp -f tp1-python-visualisations/*.png images/tp2/
+            mkdir -p images/tp2 && cp -f tp1-python-visualisations/*.png images/tp2/
             echo "✓ PNG files copied to images/tp2/ (overwriting if exists)"
             ls -lh images/tp2/*.png | grep -E "(graphique_|Figure_)" | wc -l | xargs echo "  Copied PNG files:"
           else
