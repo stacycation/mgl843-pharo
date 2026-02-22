@@ -36,11 +36,11 @@ jobs:
       
       - name: Copy CSV to visualisation directory
         run: |
-          cp classes_export.csv tp1-python-visualisations/
+          cp classes_export.csv python-visualisations/
       
       - name: Run visualization script
         run: |
-          cd tp1-python-visualisations
+          cd python-visualisations
           python Visualisation.py
       
       - name: Ensure images directory exists
@@ -50,15 +50,15 @@ jobs:
       
       - name: Copy generated files to images folder
         run: |
-          if ls tp1-python-visualisations/*.png 1> /dev/null 2>&1; then
-            mkdir -p images/tp2 && cp -f tp1-python-visualisations/*.png images/tp2/
+          if ls python-visualisations/*.png 1> /dev/null 2>&1; then
+            mkdir -p images/tp2 && cp -f python-visualisations/*.png images/tp2/
             echo "✓ PNG files copied to images/tp2/ (overwriting if exists)"
             ls -lh images/tp2/*.png | grep -E "(graphique_|Figure_)" | wc -l | xargs echo "  Copied PNG files:"
           else
             echo "⚠ No PNG files found"
           fi
-          if ls tp1-python-visualisations/*.svg 1> /dev/null 2>&1; then
-            cp -f tp1-python-visualisations/*.svg images/tp2/
+          if ls python-visualisations/*.svg 1> /dev/null 2>&1; then
+            cp -f python-visualisations/*.svg images/tp2/
             echo "✓ SVG files copied to images/tp2/ (overwriting if exists)"
             ls -lh images/tp2/*.svg | grep -E "(graphique_|Figure_)" | wc -l | xargs echo "  Copied SVG files:"
           else
