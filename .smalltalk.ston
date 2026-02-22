@@ -1,9 +1,11 @@
 SmalltalkCISpec {
   #loading : [
-    {
+    SCIMetacelloLoadSpec {
       #baseline : 'MGL843',
       #directory : 'src',
-      #load : [ 'CI' ]
+      #load : [ 'CI' ],
+      #platforms : [ #pharo ],
+      #registerInIceberg : true
     }
   ]
 }
