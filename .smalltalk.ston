@@ -1,12 +1,5 @@
 SmalltalkCISpec {
-  #loading : [
-    SCIMetacelloLoadingSpec {
-      #baseline : 'MGL843',
-      #directory : 'src',
-      #load : [ 'CI' ]
-    }
-  ],
-  #testing : {
-    #exclude : [ ]
-  }
+  #baseline : 'MGL843',
+  #directory : 'src',
+  #load : [ 'CI' ]
 }
