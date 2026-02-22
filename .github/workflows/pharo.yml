@@ -54,13 +54,15 @@ jobs:
       - name: Check Baseline exists in src (BaselineOfMGL843)
         run: |
           set -euxo pipefail
-          if ! find src -maxdepth 4 -type f -iname "*BaselineOfMGL843*" | head -n 1 | grep -qi "BaselineOfMGL843"; then
-            echo "::error::BaselineOfMGL843 not found under ./src. Metacello cannot load your project."
+          if ! find src -maxdepth 6 -type d -name "BaselineOfMGL843.class" | head -n 1 | grep -q "BaselineOfMGL843.class"; then
+            echo "::error::BaselineOfMGL843.class not found under ./src. Metacello cannot load your project."
+            echo "Dirs under src (first 200):"
+            find src -maxdepth 4 -type d | head -n 200
             echo "Files under src (first 300):"
             find src -maxdepth 4 -type f | head -n 300
             exit 1
           fi
-          echo "OK: BaselineOfMGL843 found."
+          echo "OK: BaselineOfMGL843.class found."
 
       - name: Clean previous build folder (avoid stuck state)
         run: |
