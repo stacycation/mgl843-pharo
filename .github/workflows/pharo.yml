@@ -40,12 +40,16 @@ jobs:
           echo "src contents:"
           ls -la src
 
+      - name: Show .smalltalk.ston used by CI
+        run: |
+          echo "=== .smalltalk.ston ==="
+          cat .smalltalk.ston
+          echo "======================"
+
       - name: Load + Test via smalltalkCI
         run: |
           smalltalkci -s Pharo64-11 .smalltalk.ston
 
-      - name: Run SUnit tests
-        run: |
       - name: Upload artifacts (always)
         if: always()
         uses: actions/upload-artifact@v4
