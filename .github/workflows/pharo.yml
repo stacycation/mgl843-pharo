@@ -14,12 +14,11 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - name: Checkout (full history)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Cache Pharo + smalltalkCI + Metacello
+      # Cache stable: ne change pas quand tu modifies src
+      - name: Cache Pharo + smalltalkCI
         uses: actions/cache@v4
         with:
           path: |
@@ -28,49 +27,44 @@ jobs:
             ~/.smalltalkCI
           key: ${{ runner.os }}-pharo11-cache-v1
           restore-keys: |
-            ${{ runner.os }}-pharo11-
+            ${{ runner.os }}-pharo11-cache-
 
+      # Petit check réseau + debug (utile si ça "bloque")
+      - name: Network sanity check
+        run: |
+          set -euxo pipefail
+          curl -I --retry 5 --retry-delay 3 --connect-timeout 10 --max-time 30 https://files.pharo.org/ || true
+          curl -I --retry 5 --retry-delay 3 --connect-timeout 10 --max-time 30 https://github.com/ || true
+          ls -la
+          ls -la src | head -n 200
+
+      # Setup smalltalkCI + Pharo (version "pinnée" = stable)
       - name: Setup Pharo (smalltalkCI)
-        uses: hpi-swa/setup-smalltalkCI@v1
+        uses: hpi-swa/setup-smalltalkCI@v1.3.0
         with:
           smalltalk-image: Pharo64-11
 
-      - name: Show repo + spec used by CI
+      - name: Show .smalltalk.ston
         run: |
           set -euxo pipefail
-          echo "Ref: $GITHUB_REF"
-          echo "SHA: $GITHUB_SHA"
-          git log -1 --oneline
-          echo "=== .smalltalk.ston ==="
           cat .smalltalk.ston
-          echo "======================"
 
-      - name: Ensure Tonel src exists (and list)
+      # Vérifie que Tonel est ok
+      - name: Check Tonel structure
         run: |
           set -euxo pipefail
-          test -d src
-          ls -la src | head -n 200
+          test -f src/BaselineOfMGL843/package.st
+          test -d src/BaselineOfMGL843/BaselineOfMGL843.class
+          echo "OK: Tonel baseline structure found."
 
-      - name: Check Baseline exists in src (BaselineOfMGL843)
-        run: |
-          set -euxo pipefail
-          if ! find src -maxdepth 6 -type d -name "BaselineOfMGL843.class" | head -n 1 | grep -q "BaselineOfMGL843.class"; then
-            echo "::error::BaselineOfMGL843.class not found under ./src. Metacello cannot load your project."
-            echo "Dirs under src (first 200):"
-            find src -maxdepth 4 -type d | head -n 200
-            echo "Files under src (first 300):"
-            find src -maxdepth 4 -type f | head -n 300
-            exit 1
-          fi
-          echo "OK: BaselineOfMGL843.class found."
-
-      - name: Clean previous build folder (avoid stuck state)
+      # Clean builds (évite états bloqués)
+      - name: Clean smalltalkCI builds
         run: |
           set -euxo pipefail
           rm -rf ~/.smalltalkCI/_builds || true
 
+      # Load + Test
       - name: Load + Test via smalltalkCI
-        timeout-minutes: 20
         run: |
           set -euxo pipefail
           smalltalkci -s Pharo64-11 .smalltalk.ston
@@ -81,9 +75,6 @@ jobs:
         with:
           name: pharo-artifacts
           path: |
-            *.image
-            *.changes
             PharoDebug.log
             ~/.smalltalkCI/_builds/**/*
           if-no-files-found: ignore
-# trigger ci dim. 22 févr. 2026 14:24:17 AST
