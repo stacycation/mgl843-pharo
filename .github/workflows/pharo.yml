@@ -84,3 +84,4 @@ jobs:
             PharoDebug.log
             ~/.smalltalkCI/_builds/**/*
           if-no-files-found: ignore
+# trigger ci dim. 22 févr. 2026 14:24:17 AST
