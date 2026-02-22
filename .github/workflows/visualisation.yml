@@ -32,7 +32,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install -r tp1-python-visualisations/requirements.txt
+          pip install -r python-visualisations/requirements.txt
       
       - name: Copy CSV to visualisation directory
         run: |
