@@ -14,43 +14,63 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Pharo
-        uses: hpi-swa/setup-smalltalkCI@v1
-        with:
-          smalltalk-image: Pharo64-11
-
-      - name: Cache Pharo + Metacello
+      - name: Cache Pharo + smalltalkCI + Metacello
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache
             ~/.pharo
             ~/.smalltalkCI
-          key: ${{ runner.os }}-pharo11-${{ hashFiles('src/**', '.smalltalk.ston') }}
+          key: ${{ runner.os }}-pharo11-${{ hashFiles('.smalltalk.ston', 'src/**') }}
           restore-keys: |
-            ${{ runner.os }}-pharo11-       
+            ${{ runner.os }}-pharo11-
 
-      - name: Ensure Iceberg layout exists
-        run: |
-          if [ ! -d "src" ]; then
-            echo "::error::Missing ./src directory (Tonel)."
-            exit 1
-          fi
-          echo "src contents:"
-          ls -la src
+      - name: Setup Pharo (smalltalkCI)
+        uses: hpi-swa/setup-smalltalkCI@v1
+        with:
+          smalltalk-image: Pharo64-11
 
-      - name: Show .smalltalk.ston used by CI
+      - name: Show repo + spec used by CI
         run: |
+          set -euxo pipefail
+          echo "Ref: $GITHUB_REF"
+          echo "SHA: $GITHUB_SHA"
+          git log -1 --oneline
           echo "=== .smalltalk.ston ==="
           cat .smalltalk.ston
           echo "======================"
 
-      - name: Load + Test via smalltalkCI
+      - name: Ensure Tonel src exists (and list)
         run: |
+          set -euxo pipefail
+          test -d src
+          ls -la src | head -n 200
+
+      - name: Check Baseline exists in src (BaselineOfMGL843)
+        run: |
+          set -euxo pipefail
+          if ! find src -maxdepth 4 -type f -iname "*BaselineOfMGL843*" | head -n 1 | grep -qi "BaselineOfMGL843"; then
+            echo "::error::BaselineOfMGL843 not found under ./src. Metacello cannot load your project."
+            echo "Files under src (first 300):"
+            find src -maxdepth 4 -type f | head -n 300
+            exit 1
+          fi
+          echo "OK: BaselineOfMGL843 found."
+
+      - name: Clean previous build folder (avoid stuck state)
+        run: |
+          set -euxo pipefail
+          rm -rf ~/.smalltalkCI/_builds || true
+
+      - name: Load + Test via smalltalkCI
+        timeout-minutes: 20
+        run: |
+          set -euxo pipefail
           smalltalkci -s Pharo64-11 .smalltalk.ston
 
       - name: Upload artifacts (always)
@@ -62,4 +82,5 @@ jobs:
             *.image
             *.changes
             PharoDebug.log
+            ~/.smalltalkCI/_builds/**/*
           if-no-files-found: ignore
