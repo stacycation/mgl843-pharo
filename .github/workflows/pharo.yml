@@ -14,10 +14,10 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - uses: actions/checkout@v4
+      -uses: actions/checkout@v4
 
-      - name: Setup Pharo
-	uses: hpi-swa/setup-smalltalkCI@v1
+      -name: Setup Pharo
+        uses: hpi-swa/setup-smalltalkCI@v1
 	with:
 	  smalltalk: Pharo64-11
 
