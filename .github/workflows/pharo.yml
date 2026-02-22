@@ -1,0 +1,89 @@
+name: Pharo CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: pharo-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Cache stable: ne change pas quand tu modifies src
+      - name: Cache Pharo + smalltalkCI
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            ~/.pharo
+            ~/.smalltalkCI
+          key: ${{ runner.os }}-pharo11-cache-v1
+          restore-keys: |
+            ${{ runner.os }}-pharo11-cache-
+
+      # Petit check réseau + debug (utile si ça "bloque")
+      - name: Network sanity check
+        run: |
+          set -euxo pipefail
+          curl -I --retry 5 --retry-delay 3 --connect-timeout 10 --max-time 30 https://files.pharo.org/ || true
+          curl -I --retry 5 --retry-delay 3 --connect-timeout 10 --max-time 30 https://github.com/ || true
+          ls -la
+          ls -la src | head -n 200
+
+      # Setup smalltalkCI + Pharo (version "pinnée" = stable)
+      - name: Setup Pharo (smalltalkCI)
+        uses: hpi-swa/setup-smalltalkCI@v1
+        with:
+          smalltalk-image: Pharo64-11
+
+      - name: Show .smalltalk.ston
+        run: |
+          set -euxo pipefail
+          cat .smalltalk.ston
+
+      # Vérifie que Tonel est ok
+      - name: Check Tonel structure
+        run: |
+          set -euxo pipefail
+          test -f src/BaselineOfMGL843/package.st
+          test -d src/BaselineOfMGL843/BaselineOfMGL843.class
+          echo "OK: Tonel baseline structure found."
+
+      # Clean builds (évite états bloqués)
+      - name: Clean smalltalkCI builds
+        run: |
+          set -euxo pipefail
+          rm -rf ~/.smalltalkCI/_builds || true
+
+      # Load + Test
+      - name: Load + Test via smalltalkCI
+        run: |
+          set -euxo pipefail
+      - name: Debug Tonel files
+        run: |
+          set -euxo pipefail
+          echo "=== Baseline package.st ==="
+          cat src/BaselineOfMGL843/package.st
+          echo "=== Find baseline files ==="
+          find src/BaselineOfMGL843 -maxdepth 3 -type f -print
+          echo "=== Find src top ==="
+          find src -maxdepth 2 -type f -print
+          smalltalkci -s Pharo64-11 .smalltalk.ston
+
+      - name: Upload artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pharo-artifacts
+          path: |
+            PharoDebug.log
+            ~/.smalltalkCI/_builds/**/*
+          if-no-files-found: ignore

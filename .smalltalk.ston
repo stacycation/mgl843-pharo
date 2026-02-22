@@ -1,0 +1,15 @@
+SmalltalkCISpec {
+  #loading : [
+    SCIMetacelloLoadSpec {
+      #baseline : 'MGL843',
+      #directory : 'src',
+      #repository : 'filetree://./src',
+      #load : [ 'CI' ],
+      #platforms : [ #pharo ],
+      #registerInIceberg : false
+    }
+  ],
+  #testing : {
+    #packages : [ 'FamixTSCSVExporter' ]
+  }
+}
