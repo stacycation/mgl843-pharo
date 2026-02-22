@@ -17,9 +17,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Pharo
-        uses: hpi-swa/setup-pharo@v2
-        with:
-          pharo-version: "Pharo64-11"
+	uses: hpi-swa/setup-smalltalkCI@v1
+	with:
+	  smalltalk: Pharo64-11
 
       - name: Cache Pharo + Metacello
         uses: actions/cache@v4
