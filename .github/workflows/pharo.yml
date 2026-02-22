@@ -19,7 +19,7 @@ jobs:
       - name: Setup Pharo
         uses: hpi-swa/setup-smalltalkCI@v1
         with:
-          smalltalk: Pharo64-11
+          smalltalk-image: Pharo64-11
 
       - name: Cache Pharo + Metacello
         uses: actions/cache@v4
