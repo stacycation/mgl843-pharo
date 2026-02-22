@@ -40,7 +40,7 @@ jobs:
 
       # Setup smalltalkCI + Pharo (version "pinnée" = stable)
       - name: Setup Pharo (smalltalkCI)
-        uses: hpi-swa/setup-smalltalkCI@v1.3.0
+        uses: hpi-swa/setup-smalltalkCI@v1
         with:
           smalltalk-image: Pharo64-11
 
