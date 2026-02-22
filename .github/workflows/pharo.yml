@@ -67,6 +67,15 @@ jobs:
       - name: Load + Test via smalltalkCI
         run: |
           set -euxo pipefail
+      - name: Debug Tonel files
+        run: |
+          set -euxo pipefail
+          echo "=== Baseline package.st ==="
+          cat src/BaselineOfMGL843/package.st
+          echo "=== Find baseline files ==="
+          find src/BaselineOfMGL843 -maxdepth 3 -type f -print
+          echo "=== Find src top ==="
+          find src -maxdepth 2 -type f -print
           smalltalkci -s Pharo64-11 .smalltalk.ston
 
       - name: Upload artifacts (always)
