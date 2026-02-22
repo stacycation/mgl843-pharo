@@ -40,40 +40,12 @@ jobs:
           echo "src contents:"
           ls -la src
 
-      - name: Load project via Metacello (BaselineOfMGL843)
+      - name: Load + Test via smalltalkCI
         run: |
-          pharo --headless Pharo.image eval "
-            [ 
-              Metacello new
-                baseline: 'MGL843';
-                repository: 'filetree://', (FileLocator workingDirectory / 'src') fullName;
-                load: 'CI'.
-              Transcript show: 'Metacello load OK'; cr.
-              Smalltalk snapshot: false andQuit: true
-            ] on: Error do: [:e |
-              Transcript show: 'LOAD FAILED: '; show: e printString; cr.
-              Smalltalk exitFailure
-            ].
-          "
+          smalltalkci -s Pharo64-11 .smalltalk.ston
 
       - name: Run SUnit tests
         run: |
-          pharo --headless Pharo.image eval "
-            | suite result |
-            (Smalltalk at: #TestCase ifAbsent: [
-              Transcript show: 'SUnit not present - skipping.'; cr.
-              Smalltalk snapshot: false andQuit: true
-            ]).
-            suite := TestSuite new.
-            TestCase allSubclasses do: [:tc | suite addTests: tc suite ].
-            result := suite run.
-            Transcript show: 'Failures: '; show: result failures size asString; cr.
-            Transcript show: 'Errors: '; show: result errors size asString; cr.
-            ((result failures isEmpty) and: [ result errors isEmpty ])
-              ifTrue: [ Smalltalk snapshot: false andQuit: true ]
-              ifFalse: [ Smalltalk exitFailure ].
-          "
-
       - name: Upload artifacts (always)
         if: always()
         uses: actions/upload-artifact@v4

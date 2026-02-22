@@ -1,0 +1,12 @@
+SmalltalkCISpec {
+  #loading : [
+    SCIMetacelloLoadingSpec {
+      #baseline : 'MGL843',
+      #directory : 'src',
+      #load : [ 'CI' ]
+    }
+  ],
+  #testing : {
+    #exclude : [ ]
+  }
+}
