@@ -29,9 +29,10 @@ jobs:
           path: |
             ~/.cache
             ~/.pharo
-          key: ${{ runner.os }}-pharo11-${{ hashFiles('src/**', '.github/workflows/pharo.yml') }}
+            ~/.smalltalkCI
+          key: ${{ runner.os }}-pharo11-${{ hashFiles('src/**', '.smalltalk.ston') }}
           restore-keys: |
-            ${{ runner.os }}-pharo11-
+            ${{ runner.os }}-pharo11-       
 
       - name: Ensure Iceberg layout exists
         run: |
