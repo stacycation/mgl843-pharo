@@ -3,9 +3,13 @@ SmalltalkCISpec {
     SCIMetacelloLoadSpec {
       #baseline : 'MGL843',
       #directory : 'src',
+      #repository : 'filetree://./src',
       #load : [ 'CI' ],
       #platforms : [ #pharo ],
-      #registerInIceberg : true
+      #registerInIceberg : false
     }
-  ]
+  ],
+  #testing : {
+    #packages : [ 'FamixTSCSVExporter' ]
+  }
 }
